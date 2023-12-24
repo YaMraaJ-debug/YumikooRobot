@@ -35,7 +35,7 @@ async def handler(event):
 
     text = str(event.pattern_match.group(1)).strip()
 
-    if len(text) < 1:
+    if not text:
 
         return await msg.reply("You might want to try `/mmf text`")
 
@@ -56,14 +56,7 @@ async def drawText(image_path, text):
 
     i_width, i_height = img.size
 
-    if os.name == "nt":
-
-        fnt = "ariel.ttf"
-
-    else:
-
-        fnt = "./DAXXROBOT/resources/default.ttf"
-
+    fnt = "ariel.ttf" if os.name == "nt" else "./DAXXROBOT/resources/default.ttf"
     m_font = ImageFont.truetype(fnt, int((70 / 640) * i_width))
 
     if ";" in text:

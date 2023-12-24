@@ -7,12 +7,16 @@ from DAXXROBOT.modules.disable import DisableAbleCommandHandler
 
 
 def truth(update: Update, context: CallbackContext):
-    truth = requests.get(f"https://api.truthordarebot.xyz/v1/truth").json()["question"]
+    truth = requests.get("https://api.truthordarebot.xyz/v1/truth").json()[
+        "question"
+    ]
     update.effective_message.reply_text(truth)
 
 
 def dare(update: Update, context: CallbackContext):
-    dare = requests.get(f"https://api.truthordarebot.xyz/v1/dare").json()["question"]
+    dare = requests.get("https://api.truthordarebot.xyz/v1/dare").json()[
+        "question"
+    ]
     update.effective_message.reply_text(dare)
 #def wyr(update: Update, context: CallbackContext):
 #    truth = requests.get(f"https://api.truthordarebot.xyz/v1/wyr").json()["question"]
