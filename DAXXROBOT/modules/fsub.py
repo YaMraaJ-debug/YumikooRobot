@@ -17,12 +17,10 @@ async def is_admin(chat_id, user_id):
         p = await Mukesh(GetParticipantRequest(chat_id, user_id))
     except UserNotParticipantError:
         return False
-    if isinstance(p.participant, types.ChannelParticipantAdmin) or isinstance(
-        p.participant, types.ChannelParticipantCreator
-    ):
-        return True
-    else:
-        return False
+    return isinstance(
+        p.participant,
+        (types.ChannelParticipantAdmin, types.ChannelParticipantCreator),
+    )
 
 
 async def participant_check(channel, user_id):
@@ -53,15 +51,14 @@ async def fsub(event):
     except IndexError:
         channel = None
     if not channel:
-        chat_db = db.fs_settings(event.chat_id)
-        if not chat_db:
-            await event.reply(
-                "<b>❌ ғᴏʀᴄᴇ sᴜʙsᴄʀɪʙᴇ ɪs ᴅɪsᴀʙʟᴇᴅ ɪɴ ᴛʜɪs ᴄʜᴀᴛ.</b>", parse_mode="HTML"
-            )
-        else:
+        if chat_db := db.fs_settings(event.chat_id):
             await event.reply(
                 f"ғᴏʀᴄᴇsᴜʙsᴄʀɪʙᴇ ɪs ᴄᴜʀʀᴇɴᴛʟʏ <b>ᴇɴᴀʙʟᴇᴅ</b>. ᴜsᴇʀs ᴀʀᴇ ғᴏʀᴄᴇᴅ ᴛᴏ ᴊᴏɪɴ <b>@{chat_db.channel}</b> ᴛᴏ sᴘᴇᴀᴋ ʜᴇʀᴇ.",
                 parse_mode="html",
+            )
+        else:
+            await event.reply(
+                "<b>❌ ғᴏʀᴄᴇ sᴜʙsᴄʀɪʙᴇ ɪs ᴅɪsᴀʙʟᴇᴅ ɪɴ ᴛʜɪs ᴄʜᴀᴛ.</b>", parse_mode="HTML"
             )
     elif channel in ["on", "yes", "y"]:
         await event.reply("❗ᴘʟᴇᴀsᴇ sᴘᴇᴄɪғʏ ᴛʜᴇ ᴄʜᴀɴɴᴇʟ ᴜsᴇʀɴᴀᴍᴇ.")
@@ -96,10 +93,9 @@ async def fsub_n(e):
         return
     if e.is_private:
         return
-    if e.chat.admin_rights:
-        if not e.chat.admin_rights.ban_users:
-            return
-    else:
+    if not e.chat.admin_rights:
+        return
+    if not e.chat.admin_rights.ban_users:
         return
     if not e.from_id:
         return
@@ -116,7 +112,7 @@ async def fsub_n(e):
         return
     if not check:
         buttons = [Button.url("ᴊᴏɪɴ ᴄʜᴀɴɴᴇʟ", f"t.me/{channel}")], [
-            Button.inline("ᴜɴᴍᴜᴛᴇ ᴍᴇ", data="fs_{}".format(str(e.sender_id)))
+            Button.inline("ᴜɴᴍᴜᴛᴇ ᴍᴇ", data=f"fs_{str(e.sender_id)}")
         ]
         txt = f'<b><a href="tg://user?id={e.sender_id}">{e.sender.first_name}</a></b>, ʏᴏᴜ ʜᴀᴠᴇ <b>ɴᴏᴛ sᴜʙsᴄʀɪʙᴇᴅ</b> ᴛᴏ ᴏᴜʀ <b><a href="t.me/{channel}">ᴄʜᴀɴɴᴇʟ</a></b> ʏᴇᴛ❗.ᴘʟᴇᴀsᴇ <b><a href="t.me/{channel}">ᴊᴏɪɴ</a></b> ᴀɴᴅ <b>ᴘʀᴇss ᴛʜᴇ ʙᴜᴛᴛᴏɴ ʙᴇʟᴏᴡ</b> ᴛᴏ ᴜɴᴍᴜᴛᴇ ʏᴏᴜʀsᴇʟғ.'
         await e.reply(txt, buttons=buttons, parse_mode="html", link_preview=False)
@@ -126,7 +122,7 @@ async def fsub_n(e):
 @Mukeshinline(pattern=r"fs(\_(.*))")
 async def unmute_fsub(event):
     user_id = int(((event.pattern_match.group(1)).decode()).split("_", 1)[1])
-    if not event.sender_id == user_id:
+    if event.sender_id != user_id:
         return await event.answer("ᴛʜɪs ɪs ɴᴏᴛ ᴍᴇᴀɴᴛ ғᴏʀ ʏᴏᴜ.", alert=True)
     channel = (db.fs_settings(event.chat_id)).get("channel")
     try:
